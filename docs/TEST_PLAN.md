@@ -199,3 +199,63 @@ des boutons d'action selon son type :
       cohérence dashboard ↔ notifications (caches invalidés des deux côtés).
 - [ ] Agent : ne voit que les actions de son périmètre (pas de
       Valider/Refuser de dépense, pas de Renouveler, pas de Clôturer).
+
+## Phase 7 — Storage, paiements, quittances, PWA
+
+Pré-requis : exécuter `supabase/migrations/0010_phase7_storage_paiements.sql`
+(ou le `schema.sql` à jour). La migration crée aussi les buckets Storage
+(`nkama-docs` privé, `nkama-avatars` public) — rien à créer à la main.
+Nouvelle dépendance : `npm install` (jsPDF).
+
+### Preuves de tickets (upload réel)
+- [ ] Fiche ticket : toucher une case de preuve manquante ouvre le sélecteur
+      de fichier (photo avant/après : images ; facture : image ou PDF).
+- [ ] Facture : le montant facturé est demandé avant l'envoi ; il alimente
+      « Montant facturé » et le coût total Maintenance.
+- [ ] Après upload : la case passe au vert sans recharger, le déblocage des
+      étapes suit (Affecter possible dès la photo avant ; envoi en
+      validation dès photo après + facture).
+- [ ] Toucher une preuve validée l'ouvre dans un nouvel onglet (URL signée,
+      valable 1 h) — y compris pour un autre utilisateur du compte.
+- [ ] Ticket clôturé : plus d'ajout possible (consultation seule).
+- [ ] Agent : peut ajouter des preuves sur les tickets de son périmètre ;
+      un agent sans accès au bien ne voit pas le ticket (RLS Storage :
+      un fichier d'un autre compte owner est inaccessible).
+
+### Photo de profil
+- [ ] Mon profil : « Ajouter une photo » (ou toucher l'avatar) → upload →
+      la photo apparaît immédiatement (profil + en-tête du dashboard),
+      et persiste après rechargement (bucket public `nkama-avatars`).
+- [ ] Le champ « Photo (URL) » a disparu (remplacé par l'upload).
+
+### Encaissement des loyers
+- [ ] Fiche locataire → « Encaisser » (owner/admin uniquement ; invisible
+      pour un agent) : liste des mois du bail (mois prochain inclus), mois
+      payés grisés, reste dû affiché pour les mois partiels.
+- [ ] Mois unique : montant modifiable (paiement partiel possible) ; un
+      montant > reste dû est refusé. Mois multiples : chaque mois est soldé,
+      total affiché.
+- [ ] Mode de paiement (espèces, Mobile Money, virement, chèque, autre),
+      date, note ; l'historique affiche « Partiel x/y », le mode et la date.
+- [ ] Paiement partiel : statut « Partiel », KPI « Loyers encaissés » et
+      cash-flow intègrent le montant partiel ; l'alerte « loyer en retard »
+      affiche le reste dû. Un second paiement soldant le mois → « Payé ».
+- [ ] Mois déjà payé : refus (« déjà intégralement réglé »).
+- [ ] Dashboard/Finances : chiffres cohérents après encaissement (caches
+      invalidés).
+
+### Quittances & reçus PDF
+- [ ] Historique des loyers : icône de téléchargement sur les mois payés
+      (quittance) et partiels (reçu, mention « ne vaut pas quittance »).
+- [ ] Le PDF contient bailleur (nom du compte), locataire, bien, période,
+      montants (chiffres + toutes lettres), mode, date, signature.
+- [ ] Fichier : `quittance-<locataire>-<AAAA-MM>.pdf` / `recu-…`.
+
+### PWA & déploiement
+- [ ] `npm run build` sans erreur ; `vercel.json` fourni (rewrites SPA).
+- [ ] En production (HTTPS) : bandeau/menu « Installer l'application »
+      (manifest + service worker) ; icône NK sur l'écran d'accueil.
+- [ ] Hors ligne : l'app shell se charge (données indisponibles, normal) ;
+      les données ne sont jamais mises en cache par le service worker.
+- [ ] Rechargement d'une route profonde (ex. `/locataires/<id>`) sur le
+      site déployé → pas de 404 (rewrite SPA).

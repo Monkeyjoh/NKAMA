@@ -31,8 +31,14 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 
 Dans **Supabase → SQL Editor**, exécutez dans l'ordre :
 
-1. `supabase/schema.sql` (tables, vues UI, fonctions, RLS)
+1. `supabase/schema.sql` (tables, vues UI, fonctions, RLS, buckets Storage)
 2. `supabase/seed.sql` (données de démonstration)
+
+> Base existante (phases 0-6 déjà en place) : exécutez seulement
+> `supabase/migrations/0010_phase7_storage_paiements.sql`. La migration crée
+> aussi les buckets Storage `nkama-docs` (privé) et `nkama-avatars` (public)
+> avec leurs policies — aucune manipulation dans l'onglet Storage n'est
+> nécessaire.
 
 ## 4. Activer l'authentification par lien magique
 

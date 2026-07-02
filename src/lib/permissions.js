@@ -24,6 +24,7 @@ const MATRIX = {
 
   // Finances
   "finance.view": ["admin"],
+  "payment.record": ["admin"],
   "expense.create": ["admin"],
   "expense.validate": ["admin"],
 

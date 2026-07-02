@@ -15,3 +15,5 @@ export * from "@/services/settingsService";
 export * from "@/services/authService";
 export * from "@/services/notificationsService";
 export * from "@/services/alertActionsService";
+export * from "@/services/storageService";
+export * from "@/services/ownersService";

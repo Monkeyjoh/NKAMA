@@ -74,7 +74,20 @@ export const PAY_STATUT = {
   paye: { label: "Payé", color: "var(--olive)", bg: "#E7EDE0" },
   en_retard: { label: "En retard", color: "var(--rust)", bg: "#FBE9E2" },
   attendu: { label: "Attendu", color: "#8A6A1F", bg: "#FBF1DE" },
+  partiel: { label: "Partiel", color: "var(--terracotta)", bg: "#FBEFE7" },
 };
+
+/** Modes de paiement (phase 7). */
+export const PAYMENT_MODE_OPTIONS = [
+  { value: "especes", label: "Espèces" },
+  { value: "mobile_money", label: "Mobile Money" },
+  { value: "virement", label: "Virement" },
+  { value: "cheque", label: "Chèque" },
+  { value: "autre", label: "Autre" },
+];
+export const PAYMENT_MODE_LABEL = Object.fromEntries(
+  PAYMENT_MODE_OPTIONS.map((o) => [o.value, o.label])
+);
 
 /** Métadonnées d'affichage des statuts de dépense. */
 export const EXP_STATUT = {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { S } from "@/styles/sharedStyles";
 import { ROUTES } from "@/lib/constants";
@@ -7,6 +7,7 @@ import { initials } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "@/hooks/useForm";
 import { updateUser, changePassword } from "@/services/usersService";
+import { uploadAvatar } from "@/services/storageService";
 import TopHeader from "@/components/layout/TopHeader";
 import SectionLabel from "@/components/ui/SectionLabel";
 import {
@@ -34,6 +35,30 @@ export default function ProfilePage() {
   });
   const [pwd, setPwd] = useState("");
   const [pwdBusy, setPwdBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoInputRef = useRef(null);
+
+  /** Phase 7 : upload réel de la photo de profil (Supabase Storage). */
+  async function pickPhoto(file) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError(new Error("Choisissez une image (JPG, PNG…)."));
+      return;
+    }
+    setPhotoBusy(true);
+    setError(null);
+    try {
+      const url = await uploadAvatar(file);
+      setField("photo_url", url);
+      await updateUser(user.id, { photo_url: url });
+      await refreshUser();
+      showToast("Photo mise à jour");
+    } catch (e) {
+      setError(e);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   async function saveProfile() {
     if (!values.nom) {
@@ -85,15 +110,25 @@ export default function ProfilePage() {
         <div style={S.screen}>
           {/* Avatar + rôle */}
           <div style={st.head}>
-            {values.photo_url ? (
-              <img src={values.photo_url} alt="" style={st.photo} />
-            ) : (
-              <div style={st.avatar}>{initials(values.nom || user?.nom)}</div>
-            )}
+            <button type="button" onClick={() => photoInputRef.current?.click()}
+              aria-label="Changer la photo de profil" disabled={photoBusy}
+              style={{ background: "none", border: "none", padding: 0, opacity: photoBusy ? 0.5 : 1 }}>
+              {values.photo_url ? (
+                <img src={values.photo_url} alt="" style={st.photo} />
+              ) : (
+                <div style={st.avatar}>{initials(values.nom || user?.nom)}</div>
+              )}
+            </button>
             <div>
               <div style={st.name}>{values.nom || user?.nom}</div>
               <span style={st.roleChip}>{ROLE_LABELS[user?.role] || "—"}</span>
+              <button type="button" style={st.photoBtn} disabled={photoBusy}
+                onClick={() => photoInputRef.current?.click()}>
+                {photoBusy ? "Envoi…" : values.photo_url ? "Changer la photo" : "Ajouter une photo"}
+              </button>
             </div>
+            <input ref={photoInputRef} type="file" accept="image/*" style={{ display: "none" }}
+              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; pickPhoto(f); }} />
           </div>
 
           <FormError error={error} />
@@ -102,7 +137,6 @@ export default function ProfilePage() {
           <TextField label="Nom" value={values.nom} onChange={(v) => setField("nom", v)} required />
           <TextField label="Téléphone" value={values.telephone} onChange={(v) => setField("telephone", v)} />
           <TextField label="Email" value={values.email} onChange={(v) => setField("email", v)} type="email" />
-          <TextField label="Photo (URL)" value={values.photo_url} onChange={(v) => setField("photo_url", v)} placeholder="https://…" />
           <SelectField label="Langue" value={values.langue} onChange={(v) => setField("langue", v)} options={LANGUE_OPTIONS} />
           <CheckboxField label="Recevoir les notifications" checked={values.notifications_actives} onChange={(v) => setField("notifications_actives", v)} />
 
@@ -135,4 +169,5 @@ const st = {
   roleChip: { display: "inline-block", marginTop: 4, fontSize: 11.5, color: "var(--ink-soft)", background: "var(--paper-dim)", borderRadius: 999, padding: "2px 10px" },
   note: { fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 8 },
   pwdBtn: { width: "100%", marginTop: 6, background: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 9, padding: "11px 16px", fontSize: 13, fontWeight: 600 },
+  photoBtn: { display: "block", marginTop: 6, background: "none", border: "none", padding: 0, fontSize: 11.5, fontWeight: 600, color: "var(--terracotta)", textDecoration: "underline" },
 };

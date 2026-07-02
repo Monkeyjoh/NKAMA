@@ -4,7 +4,9 @@ import { S } from "@/styles/sharedStyles";
 import { ROUTES } from "@/lib/constants";
 import { useMaintenanceTickets } from "@/hooks/useMaintenanceTickets";
 import { useToast } from "@/hooks/useToast";
+import { useAuth } from "@/hooks/useAuth";
 import { updateTicketStatut } from "@/services/maintenanceService";
+import { uploadTicketProof } from "@/services/storageService";
 import { invalidateDashboard } from "@/services/dashboardService";
 import { logAction, LOG } from "@/services/logService";
 import TopHeader from "@/components/layout/TopHeader";
@@ -23,10 +25,22 @@ const NEXT_STATUT = {
   reouvrir: "en_cours",
 };
 
+const PROOF_FLAGS = {
+  photo_avant: "photoAvant",
+  photo_apres: "photoApres",
+  facture: "facture",
+};
+const PROOF_LABELS = {
+  photo_avant: "Photo avant",
+  photo_apres: "Photo après",
+  facture: "Facture",
+};
+
 export default function MaintenancePage() {
   const navigate = useNavigate();
   const { data, loading, error, refetch } = useMaintenanceTickets();
   const { toast, showToast } = useToast();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState("actifs");
   const [selected, setSelected] = useState(null);
@@ -55,6 +69,24 @@ export default function MaintenancePage() {
       showToast("Échec — rechargement");
       refetch();
     }
+  }
+
+  /** Phase 7 : upload réel d'une preuve (photo avant/après, facture). */
+  async function addProof(id, kind, file, montant = null) {
+    await uploadTicketProof(user?.owner_id, id, kind, file, montant);
+    const patch = {
+      [PROOF_FLAGS[kind]]: true,
+      ...(kind === "facture" && montant ? { montant } : {}),
+    };
+    setTickets((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    setSelected((s) => (s && s.id === id ? { ...s, ...patch } : s));
+    invalidateDashboard();
+    showToast(`${PROOF_LABELS[kind]} ajoutée`);
+    const t = tickets.find((x) => x.id === id) || selected;
+    logAction(LOG.modification, "maintenance_ticket", id, {
+      label: `Preuve ajoutée (${PROOF_LABELS[kind]}) — ${t?.titre || ""}`,
+      ...(montant ? { montant } : {}),
+    }).catch(() => {});
   }
 
   const visible = tickets.filter((t) => (filter === "actifs" ? t.statut !== "cloture" : t.statut === "cloture"));
@@ -96,6 +128,7 @@ export default function MaintenancePage() {
           onClose={() => setSelected(null)}
           onAdvance={advance}
           onEdit={(t) => { setSelected(null); setFormTicket(t); }}
+          onProof={addProof}
         />
       )}
       {formTicket && (

@@ -57,7 +57,7 @@ export async function getTenantDetail(id) {
   if (contractIds.length) {
     const { data: pays } = await sb
       .from("payments")
-      .select("mois, montant, statut, date_paiement, contract_id")
+      .select("mois, montant, montant_paye, statut, mode_paiement, date_paiement, contract_id")
       .in("contract_id", contractIds)
       .order("mois", { ascending: false })
       .limit(12);

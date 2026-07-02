@@ -85,6 +85,24 @@ renseignés, les services interrogent la base réelle et l'écran de connexion
 
 👉 Marche à suivre détaillée : **`supabase/README.md`**.
 
+## Phase 7 — Storage, paiements, quittances, PWA
+
+- **Preuves réelles** : photos avant/après et factures des tickets sont
+  uploadées dans Supabase Storage (`nkama-docs`, privé, URLs signées) via la
+  RPC `attach_ticket_proof` ; photo de profil dans `nkama-avatars` (public).
+- **Encaissement des loyers** : fiche locataire → « Encaisser » — mois
+  multiples, paiement partiel, mode (espèces / Mobile Money / virement /
+  chèque), note ; RPC `record_rent_payment`. Les KPI et alertes tiennent
+  compte des paiements partiels (reste dû).
+- **Quittances PDF** : quittance de loyer (mois soldé) ou reçu de paiement
+  partiel, générés côté client (jsPDF, chargé à la demande).
+- **PWA / déploiement** : `manifest.webmanifest`, icônes, service worker
+  prudent (réseau d'abord, aucune donnée métier cachée), `vercel.json`
+  (rewrites SPA + cache immuable des assets).
+
+SQL : `supabase/migrations/0010_phase7_storage_paiements.sql` (intégré à
+`schema.sql`). Tests : `docs/TEST_PLAN.md`, section Phase 7.
+
 ### Migration des types vers Supabase (optionnel)
 
 ```bash

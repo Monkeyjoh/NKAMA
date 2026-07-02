@@ -14,6 +14,7 @@
 /** @typedef {"recommandation" | "annonce" | "agent" | "autre"} LeadSource */
 /** @typedef {"electricien" | "plombier" | "macon" | "agent_immobilier" | "gardien" | "autre"} ContractorCategorie */
 /** @typedef {"paye" | "en_retard" | "attendu"} PaymentStatut */
+/** @typedef {"especes" | "mobile_money" | "virement" | "cheque" | "autre"} PaymentMode */
 /** @typedef {"signale" | "affecte" | "en_cours" | "validation" | "cloture" | "litige"} TicketStatut */
 /** @typedef {"electricite" | "plomberie" | "maconnerie" | "autre"} TicketCategorie */
 /** @typedef {"urgent" | "normal" | "preventif"} TicketPriorite */
@@ -116,6 +117,9 @@
  * @property {string} mois
  * @property {number} montant
  * @property {PaymentStatut} statut
+ * @property {number} montant_paye     Cumul encaissé (phase 7 — paiement partiel)
+ * @property {PaymentMode} [mode_paiement]
+ * @property {string} [note]
  * @property {string} [date_paiement]
  * @property {string} created_at
  */

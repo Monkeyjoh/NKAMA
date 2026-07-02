@@ -83,6 +83,10 @@ set statut = 'en_retard', date_paiement = null
 where contract_id = '55555555-0000-0000-0000-000000000002'
   and mois >= (date_trunc('month', now()) - interval '1 month')::date;
 
+-- Phase 7 : un mois « payé » l'est intégralement (montant_paye = montant)
+update payments set montant_paye = montant, mode_paiement = 'especes'
+where statut = 'paye' and montant_paye = 0;
+
 -- 8. Documents (preuves de tickets + justificatif dépense) ---
 insert into documents (id, owner_id, entity_type, entity_id, nom_fichier, storage_path, type_fichier) values
   ('66666666-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000000001', 'ticket', '77777777-0000-0000-0000-000000000001', 'avant_clim.jpg', 'demo/avant_clim.jpg', 'image'),
